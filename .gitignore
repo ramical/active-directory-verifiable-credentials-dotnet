@@ -359,4 +359,6 @@ appsettings.[Dd]evelopment.json
 PublishProfiles/
 ServiceDependencies/
 
-
+#ignore did config files
+did-configuration.json
+did.json

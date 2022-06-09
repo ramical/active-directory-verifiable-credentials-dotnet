@@ -133,6 +133,11 @@ namespace AspNetCoreVerifiableCredentials
                     payload["issuance"]["manifest"] = AppSettings.CredentialManifest;
                 }
 
+                //derive the type from the credential manifest URI
+                Uri credentialManifestUri = new Uri(payload["issuance"]["manifest"].ToString());
+                string vcType = credentialManifestUri.Segments[credentialManifestUri.Segments.Length - 1];
+                payload["issuance"]["type"] = vcType;
+
                 //here you could change the payload manifest and change the firstname and lastname
                 payload["issuance"]["claims"]["given_name"] = "Megan";
                 payload["issuance"]["claims"]["family_name"] = "Bowen";

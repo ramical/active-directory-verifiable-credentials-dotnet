@@ -73,13 +73,11 @@
                 }
 
                 getVC.addEventListener('click', () => {
-                        window.open(
-                            'https://rcd-onboard.azurewebsites.net/issuer',
-                            '_blank'
-                        );
+                        window.location =
+                            'https://trueidentityinc.azurewebsites.net/?firstName=Ramiro&lastName=Calderon%20Romero&returnUrl=https%3A%2F%2Frcdemosonboard.azurewebsites.net%2Fverifier';
                         signIn.addEventListener('click', () => 
                         {
-                             startVerification();
+                                startVerification();
                         });
                         resetButtons('2');
                     });
@@ -96,9 +94,6 @@
                         );
                 });
                
-                
-
-
                 function startVerification()
                 {
                     fetch('/api/verifier/presentation-request')
@@ -167,7 +162,6 @@
                         })
                 }
 
-
                 function checkUserCredentialStatusWorker(requestId)
                 {
                     // 
@@ -190,5 +184,17 @@
                         }
                         );
                   }
+            
+                //special case to accelerate the flow after TrueIdentity redirects back to this page
+                
+                var params = new URLSearchParams(window.location.search);
+                if (params.has('trueIdVerified')) {
+                    var trueIdVerified = params.get('trueIdVerified');
+                    if (trueIdVerified) {
+                        resetButtons('2');
+                        startVerification();
+                    }
+                }
+
             </script>
         </div>

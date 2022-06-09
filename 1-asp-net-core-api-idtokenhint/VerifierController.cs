@@ -88,7 +88,8 @@ namespace AspNetCoreVerifiableCredentials
                 //this means only that issuer should be trusted for the requested credentialtype
                 //this value is an array in the payload, you can trust multiple issuers for the same credentialtype
                 //very common to accept the test VCs and the Production VCs coming from different verifiable credential services
-                if (payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"][0] != null)
+                if (payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"] != null && 
+                    payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"][0] != null)
                 {
                     payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"][0] = AppSettings.IssuerAuthority;
                 }
@@ -215,6 +216,7 @@ namespace AspNetCoreVerifiableCredentials
 
                     string firstName = presentationResponse["issuers"][0]["claims"]["firstName"].ToString();
                     string lastName = presentationResponse["issuers"][0]["claims"]["lastName"].ToString();
+
 
                     var mgClient = GetGraphClient();
                     var userFound = await mgClient.Users
