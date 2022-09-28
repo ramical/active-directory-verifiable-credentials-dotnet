@@ -1,0 +1,200 @@
+﻿@page
+@model AspNetCoreVerifiableCredentials.Pages.VerifierModel
+@{
+    ViewData["Title"] = "Verifier";    
+}
+        <div style="text-align: center;">
+                <img src="rcdemos-banner.png"/>
+                <h1>Employee Onboarding</h1>
+            <div id="message-wrapper" class="margin-bottom-75 margin-top-75" style="display: none">
+               <i class="fas fa-user-check green icon-text-large margin-bottom-25"></i>
+               <div id="message"></div>
+                <br />
+               <div id="subject"></div>
+                <br />
+               <div id="payload"></div>
+               <div id="accountInfo-wrapper" class="accountInfo" style="display:none">
+                   Use the following information to onboard your work account in the Authenticator App<br />
+                   <b>Account:</b><div id="userUpn" class="monospacedText">UPN</div> <br />
+                   <b>Temporary Access Pass:</b><div id="userTap" class="monospacedText">TAP</div> <br />              
+               </div>
+            </div>
+
+            <div id="step1-wrapper" class="margin-bottom-75 margin-top-75">
+                <button type="button" id="get-vc" class="button">Step 1: Get your card to proof your identity</button>
+                <div>
+                    <a id="skip-issuance" class="skipButton">I already have my card</a>
+                </div>
+            </div>
+            <div id="step2-wrapper" class="margin-bottom-75 margin-top-75" style="display:none;">
+                <button type="button" id="sign-in" class="button">Step 2: Present your TrueID card</button>
+            </div>
+            <div id="step3-wrapper" style="display:none;">
+                <i class="fas fa-user-check green icon-text-large margin-bottom-25"></i>
+                <div id="authAppMessage" class="waitingForAuthApp">Step 3: Waiting for your account setup</div>
+                <div id="apps-button-wrapper" style="display:none;">
+                    <button type="button" id="gotoapps" class="button">Step 4: Go to your apps</button>
+                </div>
+            </div>
+            <div id="qrText"  style="display:none;">
+                <p class="small-text">
+                    <img src="authenticator-icon.png" alt="Authenticator icon" class="icon-small"><br>
+                    Scan with Microsoft Authenticator
+                </p>
+            </div>
+            <a id="deeplink" style="display: none;margin-top: 10px;">Tap to open Authenticator on mobile</a>
+            <div id="qrcode" style="text-align: center"></div>
+            <div id="pinCodeText" style="display: none"></div>
+
+            <script src="qrcode.min.js"></script>
+            <script>
+                var getVC = document.getElementById('get-vc');
+                var skipIssuance = document.getElementById('skip-issuance');
+                var signIn = document.getElementById('sign-in');
+                var enroll = document.getElementById('enroll');
+                var gotoApps = document.getElementById('gotoapps');
+                
+                var display = document.getElementById('display');
+                var qrcode = new QRCode("qrcode", { width: 300, height: 300 });
+                var respPresentationReq = null;
+
+                var checkVCPresentationInterval = null;
+                var checkAuthenticatorAppStatusInterval = null;
+
+                function resetButtons(targetStep)
+                {                    
+                    document.getElementById('step1-wrapper').style.display = "none";
+                    document.getElementById('step2-wrapper').style.display = "none";
+                    document.getElementById('step3-wrapper').style.display = "none";
+                    if (targetStep != '')
+                    {
+                        document.getElementById(`step${targetStep}-wrapper`).style.display = "block";
+                    }
+                }
+
+                getVC.addEventListener('click', () => {
+                        window.location =
+                            'https://trueidentityinc.azurewebsites.net/?firstName=Ramiro&lastName=Calderon%20Romero&returnUrl=https%3A%2F%2Frcdemosonboard.azurewebsites.net%2Fverifier';
+                        signIn.addEventListener('click', () => 
+                        {
+                                startVerification();
+                        });
+                        resetButtons('2');
+                    });
+
+                skipIssuance.addEventListener('click', () => {                        
+                        resetButtons('');
+                        startVerification();
+                    });
+
+                gotoApps.addEventListener('click', () => {
+                        window.open(
+                            'https://myapplications.microsoft.com/',
+                            '_blank'
+                        );
+                });
+               
+                function startVerification()
+                {
+                    fetch('/api/verifier/presentation-request')
+                    .then(function(response) 
+                    {
+                        response.text()
+                        .catch(error => document.getElementById("message").innerHTML = error)
+                        .then(function(message) 
+                        {
+                            respPresentationReq = JSON.parse(message);
+                            if( /Android/i.test(navigator.userAgent) ) {
+                                console.log(`Android device! Using deep link (${respPresentationReq.url}).`);
+                                window.location.href = respPresentationReq.url; setTimeout(function () {
+                                window.location.href = "https://play.google.com/store/apps/details?id=com.azure.authenticator"; }, 2000);
+                            } else if (/iPhone/i.test(navigator.userAgent)) {
+                                console.log(`iOS device! Using deep link (${respPresentationReq.url}).`);
+                                window.location.replace(respPresentationReq.url);
+                            } else {
+                                console.log(`Not Android or IOS. Generating QR code encoded with ${message}`);
+                                qrcode.makeCode(respPresentationReq.url);
+                                document.getElementById('sign-in').style.visibility = "hidden";
+                                document.getElementById('qrText').style.display = "block";
+                            }
+                            checkVCPresentationInterval = setInterval(checkVCPresentationStatusWorker, 1500, respPresentationReq.id); 
+                        }).catch(error => { console.log(error.message); })
+                    }).catch(error => { console.log(error.message); });
+                    
+                }
+
+                function checkVCPresentationStatusWorker(requestId)
+                {
+                    fetch('api/verifier/presentation-response?id=' + requestId)
+                        .then(response => response.text())
+                        .catch(error => document.getElementById("message").innerHTML = error)
+                        .then(response => 
+                        {
+                            if (response.length > 0) 
+                            {
+                                console.log(response);
+                                respMsg = JSON.parse(response);
+                                // QR Code scanned
+                                if (respMsg.status == 'request_retrieved') 
+                                {
+                                    document.getElementById('message-wrapper').style.display = "block";
+                                    document.getElementById('qrText').style.display = "none";
+                                    document.getElementById('qrcode').style.display = "none";
+                                    document.getElementById('message').innerHTML = respMsg.message;
+                                }
+                                    
+                                if (respMsg.status == 'presentation_verified') {
+                                    document.getElementById('message').innerHTML = respMsg.message;
+                                    document.getElementById('accountInfo-wrapper').style.display = "block";
+                                    document.getElementById('userUpn').innerHTML = respMsg.userUPN;
+                                    document.getElementById('userTap').innerHTML = respMsg.tap;
+
+                                    resetButtons('3');
+                                    clearInterval(checkVCPresentationInterval);
+
+                                    //Turn on the timer to check user is done signing in
+                                    checkAuthenticatorAppStatusInterval = setInterval(
+                                        checkUserCredentialStatusWorker, 
+                                        3000, 
+                                        requestId);
+                                }
+                            }
+                        })
+                }
+
+                function checkUserCredentialStatusWorker(requestId)
+                {
+                    // 
+                    fetch('/api/verifier/account-set-up?id=' +requestId) 
+                        .then(response => response.text())
+                        .catch(error => document.getElementById("authAppMessage").innerHTML = error)
+                        .then(response => {
+                            if (response.length > 0) 
+                            {
+                                console.log(response);
+                                respMsg = JSON.parse(response);     
+                                if (respMsg.status == "account_setup_done")
+                                {
+                                    document.getElementById('authAppMessage').innerHTML = respMsg.message;                                        
+                                    document.getElementById('authAppMessage').style.backgroundColor  = 'green'; 
+                                    document.getElementById('apps-button-wrapper').style.display = "block"; 
+                                    clearInterval(checkAuthenticatorAppStatusInterval);
+                                }
+                            }                            
+                        }
+                        );
+                  }
+            
+                //special case to accelerate the flow after TrueIdentity redirects back to this page
+                
+                var params = new URLSearchParams(window.location.search);
+                if (params.has('trueIdVerified')) {
+                    var trueIdVerified = params.get('trueIdVerified');
+                    if (trueIdVerified) {
+                        resetButtons('2');
+                        startVerification();
+                    }
+                }
+
+            </script>
+        </div>

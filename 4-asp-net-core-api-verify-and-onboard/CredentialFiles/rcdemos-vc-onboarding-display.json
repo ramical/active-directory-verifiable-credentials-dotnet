@@ -1,0 +1,30 @@
+{
+  "locale": "en-US",
+  "card": {
+    "title": "RCDemosVC",
+    "issuedBy": "RCDemos",
+    "backgroundColor": "#ffffff",
+    "textColor": "#000000",
+    "logo": {
+      "uri": "https://rcdemosdidstorage.blob.core.windows.net/assets/rcdemos-did.png",
+      "description": "RCDemos Logo"
+    },
+    "description": "This is a demo of a custom credential"
+  },
+  "consent": {
+    "title": "Do you want to get your RCDemosVC card?",
+    "instructions": "Sign in with your account to get your card."
+  },
+  "claims": [
+    {
+      "claim": "vc.credentialSubject.firstName",
+      "type": "String",
+      "label": "First name"
+    },
+    {
+      "claim": "vc.credentialSubject.lastName",
+      "type": "String",
+      "label": "Last name"
+    }
+  ]
+}

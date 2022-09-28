@@ -1,0 +1,29 @@
+{
+  "attestations": {
+    "idTokens": [
+      {
+        "mapping": [
+          {
+            "outputClaim": "firstName",
+            "inputClaim": "given_name"
+          },
+          {
+            "outputClaim": "lastName",
+            "inputClaim": "family_name"
+          }
+        ],
+        "configuration": "https://self-issued.me",
+        "clientId": "dummy",
+        "scope": "dummy",
+        "redirectUri": "vcclient://openid/",
+        "required": true
+      }
+    ]
+  },
+  "validityInterval": 2592000,
+  "vc": {
+    "type": [
+      "RCDemosVC"
+    ]
+  }
+}
