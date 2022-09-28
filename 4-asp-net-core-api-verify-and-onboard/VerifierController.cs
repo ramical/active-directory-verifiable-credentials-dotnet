@@ -24,8 +24,8 @@ namespace AspNetCoreVerifiableCredentials
     [Route("api/[controller]/[action]")]
     public class VerifierController : Controller
     {
-        const string PRESENTATIONPAYLOAD = "presentation_request_config.json";
-        //        const string PRESENTATIONPAYLOAD = "presentation_request_config - TrueIdentitySample.json";
+        // const string PRESENTATIONPAYLOAD = "presentation_request_config.json";
+        const string PRESENTATIONPAYLOAD = "presentation_request_config - TrueIdentitySample.json";
 
         protected readonly AppSettingsModel AppSettings;
         protected IMemoryCache _cache;
@@ -88,10 +88,10 @@ namespace AspNetCoreVerifiableCredentials
                 //this means only that issuer should be trusted for the requested credentialtype
                 //this value is an array in the payload, you can trust multiple issuers for the same credentialtype
                 //very common to accept the test VCs and the Production VCs coming from different verifiable credential services
-                if (payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"] != null && 
-                    payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"][0] != null)
+                if (payload["requestedCredentials"][0]["acceptedIssuers"] != null &&
+                    payload["requestedCredentials"][0]["acceptedIssuers"][0] != null)
                 {
-                    payload["presentation"]["requestedCredentials"][0]["acceptedIssuers"][0] = AppSettings.IssuerAuthority;
+                    payload["requestedCredentials"][0]["acceptedIssuers"][0] = AppSettings.IssuerAuthority;
                 }
 
                 //modify the callback method to make it easier to debug with tools like ngrok since the URI changes all the time
@@ -129,7 +129,8 @@ namespace AspNetCoreVerifiableCredentials
                     var defaultRequestHeaders = client.DefaultRequestHeaders;
                     defaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.token);
 
-                    HttpResponseMessage res = await client.PostAsync(AppSettings.ApiEndpoint, new StringContent(jsonString, Encoding.UTF8, "application/json"));
+                    HttpResponseMessage res = await client.PostAsync(AppSettings.ApiEndpoint +
+                        "verifiableCredentials/createPresentationRequest", new StringContent(jsonString, Encoding.UTF8, "application/json"));
                     response = await res.Content.ReadAsStringAsync();
                     _log.LogTrace("succesfully called Request API");
                     client.Dispose();
@@ -159,7 +160,7 @@ namespace AspNetCoreVerifiableCredentials
                     }
                     else
                     {
-                        _log.LogError("Unsuccesfully called Request API");
+                        _log.LogError("Unsuccesfully called Request API" + response);
                         return BadRequest(new { error = "400", error_description = "Something went wrong calling the API: " + response });
                     }
                 }
@@ -193,7 +194,7 @@ namespace AspNetCoreVerifiableCredentials
                 //the request will be deleted from the server immediately.
                 //That's why it is so important to capture this callback and relay this to the UI so the UI can hide
                 //the QR code to prevent the user from scanning it twice (resulting in an error since the request is already deleted)
-                if (presentationResponse["code"].ToString() == "request_retrieved")
+                if (presentationResponse["requestStatus"].ToString() == "request_retrieved")
                 {
                     var cacheData = new
                     {
@@ -207,16 +208,15 @@ namespace AspNetCoreVerifiableCredentials
                 // typically here is where the business logic is written to determine what to do with the result
                 // the response in this callback contains the claims from the Verifiable Credential(s) being presented by the user
                 // In this case the result is put in the in memory cache which is used by the UI when polling for the state so the UI can be updated.
-                if (presentationResponse["code"].ToString() == "presentation_verified")
+                if (presentationResponse["requestStatus"].ToString() == "presentation_verified")
                 {
                     //Start of logic to issue a tap
                     //Step 1 : Look up the user based on information in the VC in Azure AD. Here, you need to put your own lookup logi to find the user 
                     //for sample purposes, we are going with a simple match in first name and last name
                     //TODO: check other information from the VC and compare against HR system (e.g. street address)
 
-                    string firstName = presentationResponse["issuers"][0]["claims"]["firstName"].ToString();
-                    string lastName = presentationResponse["issuers"][0]["claims"]["lastName"].ToString();
-
+                    string firstName = presentationResponse["verifiedCredentialsData"][0]["claims"]["firstName"].ToString();
+                    string lastName = presentationResponse["verifiedCredentialsData"][0]["claims"]["lastName"].ToString();
 
                     var mgClient = GetGraphClient();
                     var userFound = await mgClient.Users
@@ -228,7 +228,6 @@ namespace AspNetCoreVerifiableCredentials
                     var userUPN = userFound[0].UserPrincipalName;
 
                     //Cherry on top, get the user's photo, any other information 
-
 
 
 
