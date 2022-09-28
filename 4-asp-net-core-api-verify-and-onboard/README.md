@@ -6,12 +6,12 @@ languages:
 products:
 - active-directory
 - verifiable credentials
-description: "A code sample demonstrating issuance and verification of verifiable credentials."
-urlFragment: "active-directory-verifiable-credentials-dotnet"
+description: "A code sample demonstrating verification of verifiable credentials and based on that onboarding new employees to Azure Active Directory."
+urlFragment: "4-asp-net-core-api-verify-and-onboard"
 ---
 # Verifiable Credentials Code Sample
 
-This code sample demonstrates how to use Microsoft's Azure Active Directory Verifiable Credentials preview to issue and consume verifiable credentials. 
+This dotnet code sample is for a developer who wants to verify identity of a new user using Microsoft Entra Verified ID from an ISV partner offering Identity Verification and Proofing (IDV). Upon successful verification the user will be provided a Temporary access passcode to onboard to Azure AD and configure authentication for subsequent logins. 
 
 ## About this sample
 
