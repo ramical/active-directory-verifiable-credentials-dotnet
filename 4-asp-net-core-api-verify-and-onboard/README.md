@@ -2,46 +2,39 @@
 page_type: sample
 languages:
 - dotnet
-- powershell
 products:
-- active-directory
-- verifiable credentials
+- microsoft entra
+- verified id
 description: "A code sample demonstrating verification of verifiable credentials and based on that onboarding new employees to Azure Active Directory."
 urlFragment: "4-asp-net-core-api-verify-and-onboard"
 ---
-# Verifiable Credentials Code Sample
+# Verified ID Code Sample
 
-This dotnet code sample is for a developer who wants to verify identity of a new user using Microsoft Entra Verified ID from an ISV partner offering Identity Verification and Proofing (IDV). Upon successful verification the user will be provided a Temporary access passcode to onboard to Azure AD and configure authentication for subsequent logins. 
+This dotnet code sample is for a developer who wants to verify identity of a new user using Microsoft Entra Verified ID from an ISV partner. 
+Upon successful verification the user will be provided a Temporary access passcode to onboard to Azure Active Directory and configure authentication methods for subsequent logins. 
 
 ## About this sample
 
-Welcome to Azure Active Directory Verifiable Credentials. In this sample, we'll teach you to issue your first verifiable credential: a Verified Credential Expert Card. You'll then use this card to prove to a verifier that you are a Verified Credential Expert, mastered in the art of digital credentialing. The sample uses the preview REST API which supports ID Token hints to pass a payload for the verifiable credential.
-
-> **Important**: Azure Active Directory Verifiable Credentials is currently in public preview. This preview version is provided without a service level agreement, and it's not recommended for production workloads. Certain features might not be supported or might have constrained capabilities. For more information, see [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/).
+Welcome to Microsoft Entra Verified ID which includes the Request Service REST API. This API allows you to issue and verify credentials. 
+This sample shows you how to verify Microsoft Entra Verified ID from an ISV partner offering Identity Verification and Proofing (IDV) using the Request Service REST API.
 
 ## Contents
 
 The project is divided in 2 parts, one for issuance and one for verifying a verifiable credential. Depending on the scenario you need you can remove 1 part. To verify if your environment is completely working you can use both parts to issue a verifiedcredentialexpert VC and verify that as well.
 
-
-| Issuance | |
-|------|--------|
-| Pages/Issuer.cshtml|The basic webpage containing the javascript to call the APIs for issuance. |
-| IssuerController.cs | This is the controller which contains the API called from the webpage. It calls the REST API after getting an access token through MSAL. |
-| issuance_request_config.json | The sample payload send to the server to start issuing a vc. |
-
 | Verification | |
 |------|--------|
-| Pages/Verifier.cshtml | The website acting as the verifier of the verifiable credential.
+| Pages/Verifier.cshtml | The website acting as the verifier of the verifiable credential, if you have one, else it provides option to get one from the issuer.
 | VerifierController.cs | This is the controller which contains the API called from the webpage. It calls the REST API after getting an access token through MSAL and helps verifying the presented verifiable credential.
-| presentation_request_config.json | The sample payload send to the server to start issuing a vc.
+| presentation_request_config - TrueIdentitySample.json | The sample payload send to the server to verify identity of a user using Microsoft Entra Verified ID from an ISV partner - True Identity.
 
 ## Setup
 
-Before you can run this sample make sure your environment is setup correctly, follow the instructions in the documentation [here](https://aka.ms/didfordevs).
+Before you can run this sample make sure your environment is setup correctly, follow the instructions in the documentation [here](https://aka.ms/vcsetup).
+The sample excepts you have a specific user say Alex (FirstName: Alex, Last Name: Wilber) already provisioned in Azure AD with a single auth method Temporary access code
 
 ### Create application registration
-Run the [Configure.PS1](./AppCreationScripts/AppCreationScripts.md) powershell script in the AppCreationScripts directory or follow these manual steps to create an application registrations, give the application the correct permissions so it can access the Verifiable Credentials Request REST API:
+Run the [Configure.PS1](../1-asp-net-core-api-idtokenhint/AppCreationScripts/AppCreationScripts.md) powershell script in the AppCreationScripts directory or follow these manual steps to create an application registrations, give the application the correct permissions so it can access the Verified ID Request REST API:
 
 Register an application in Azure Active Directory: 
 1. Sign in to the Azure portal using either a work or school account or a personal Microsoft account.
@@ -58,9 +51,15 @@ Register an application in Azure Active Directory:
     - You’ll need this key later to configure the sample application. This key value will not be displayed again, nor retrievable by any other means, so record it as soon as it is visible from the Azure portal.
 6.	In the list of pages for the app, select API permissions
     - Click the Add a permission button
-    - Search for APIs in my organization for bbb94529-53a3-4be5-a069-7eaf2712b826 or Verifiable Credential and click the “Verifiable Credential Request Service”
-    - Click the “Application Permission” and expand “VerifiableCredential.Create.All”
-    - Click Grant admin consent for {tenant name} on top of the API/Permission list and click YES. This allows the application to get the correct permissions
+    - Search for APIs in my organization for  Verifiable Credentials Service Request and Verifiable Credentials Service service principals, and select them.
+    - Click the “Application Permission” and expand “VerifiableCredential.Create.PresentRequest”
+    - Select Add permissions.
+7.  In the list of pages for the app, select API permissions
+    - Click the Add a permission button
+    - Select Microsoft APIs, then select Microsoft Graph, then select Application Permissions
+    - Search for the UserAuthenticationMethod.ReadWrite.All and User.Read.All and select them.
+    - Select Add permissions.
+8.  Click Grant admin consent for {tenant name} on top of the API/Permission list and click YES. This allows the application to get the correct permissions
 ![Admin concent](ReadmeFiles/AdminConcent.PNG)
 
 ## Setting up and running the sample
@@ -68,25 +67,14 @@ To run the sample, clone the repository, compile & run it. It's callback endpoin
 
 ```Powershell
 git clone https://github.com/Azure-Samples/active-directory-verifiable-credentials-dotnet.git
-cd active-directory-verifiable-credentials-dotnet/1-asp-net-core-api-idtokenhint
+cd active-directory-verifiable-credentials-dotnet/4-asp-net-core-api-verify-and-onboard
 ```
 
-### Create your credential
-To use the sample we need a configured Verifiable Credential in the azure portal.
-In the project directory CredentialFiles you will find the `VerifiedCredentialExpertDisplay.json` file and the `VerifiedCredentialExpertRules.json` file. Use these 2 files to create your own VerifiedCredentialExpert credential. 
-Before you upload the files, you need to modify the `VerifiedCredentialExpertRules.json` file.
-If you navigate to your [Verifiable Credentials](https://portal.azure.com/#blade/Microsoft_AAD_DecentralizedIdentity/InitialMenuBlade/issuerSettingsBlade) blade in azure portal, you can copy the Decentralized identifier (DID) string (did:ion..) and modify the value after "iss" on line 12. Save the file and follow the instructions how to create your first verifiable credential.
-
-You can find the instructions on how to create a Verifiable Credential in the azure portal [here](https://aka.ms/didfordevs)
-
-
-Make sure you copy the value of the credential URL after you created the credential in the portal. 
-Copy the URL in the `CredentialManifest` part of the `appsettings.json`. 
-You need to manually copy your Microsoft AAD Verifiable Credential service created Decentralized Identifier (did:ion..) value from this page as well and paste that in the appsettings.json file for `IssuerAuthority` and `VerifierAuthority`.
-
 ### API Payloads
-The API is called with special payloads for issuing and verifying verifiable credentials. The sample payload files are modified by the sample code by copying the correct values from the `appsettings.json` file.
-If you want to modify the payloads `issuance_request_config.json` and `presentation_request_config.json` files yourself, make sure you comment out the code overwriting the values in the VerifierController.cs and IssuerController.cs files. The code overwrites the Authority, Manifest and trustedIssuers values. The callback URI is modified in code to match your hostname.
+The API is called with special payload for verifying verifiable credentials. The sample payload files are modified by the sample code by copying the correct values from the `appsettings.json` file.
+If you want to replace the payload `presentation_request_config - TrueIdentitySample.json` files yourself, make sure you update to the new json file in the VerifierController.cs file. 
+The code overwrites the trustedIssuers values with IssuerAuthority value from appsettings.json. So make sure to copy the trustedIssuers value from the payload to IssuerAuthority in ''appsettings.json' file 
+The callback URI is modified in code to match your hostname.
 
 Make sure you copy the `ClientId`, `ClientSecret` and `TenantTd` you copied when creating the app registration to the `appsettings.json` as well.
 
@@ -110,9 +98,10 @@ ngrok http 5000
 ![API Overview](ReadmeFiles/ngrok-url-screen.png)
 The sample dynamically copies the hostname to be part of the callback URL, this way the VC Request service can reach your sample web application to execute the callback method.
 
-1. Select GET CREDENTIAL
+1. Select ** Step 1: Get your card to proof your identity **
+2. Follow the prompts to verify identity and Click ** OK ** on the ** Verification Complete ** screen.
 1. In Authenticator, scan the QR code. 
-> If this is the first time you are using Verifiable Credentials the Credentials page with the Scan QR button is hidden. You can use the `add account` button. Select `other` and scan the QR code, this will enable the preview of Verifiable Credentials in Authenticator.
+> If this is the first time you are using Verifiable Credentials the Credentials page with the Scan QR button is hidden. You can use the `add account` button. Select `other` and scan the QR code, this will enable Verified Id in Authenticator.
 6. If you see the 'This app or website may be risky screen', select **Advanced**.
 1. On the next **This app or website may be risky** screen, select **Proceed anyways (unsafe)**.
 1. On the Add a credential screen, notice that:
@@ -123,17 +112,14 @@ The sample dynamically copies the hostname to be part of the callback URL, this 
 9. Select **Add**.
 
 ## Verify the verifiable credential by using the sample app
-1. Navigate back and click on the Verify Credential link
-2. Click Verify Credential button
-3. Scan the QR code
-4. select the VerifiedCredentialExpert credential and click allow
-5. You should see the result presented on the screen.
-
-
+1. Open the HTTPS URL generated by ngrok and click on the ** I already have my card ** link
+2. Scan the QR code
+3. select the VerifiedCredentialExpert credential and click allow
+4. You should see the result presented on the screen.
 
 ## About the code
 Since the API is now a multi-tenant API it needs to receive an access token when it's called. 
-The endpoint of the API is https://beta.did.msidentity.com/v1.0/{YOURTENANTID}/verifiablecredentials/request 
+The endpoint of the API is https://verifiedid.did.msidentity.com/v1.0/verifiableCredentials/createPresentationRequest 
 
 To get an access token we are using MSAL as library. MSAL supports the creation and caching of access token which are used when calling Azure Active Directory protected resources like the verifiable credential request API.
 Typicall calling the libary looks something like this:
@@ -148,7 +134,7 @@ And creating an access token:
 result = await app.AcquireTokenForClient(scopes)
                   .ExecuteAsync();
 ```
-> **Important**: At this moment the scope needs to be: **bbb94529-53a3-4be5-a069-7eaf2712b826/.default** This might change in the future
+> **Important**: At this moment the scope needs to be: **3db474b9-6a0c-4840-96ac-1fceb342124f/.default** 
 
 Calling the API looks like this:
 ```C#
