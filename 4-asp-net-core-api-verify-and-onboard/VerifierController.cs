@@ -224,37 +224,50 @@ namespace AspNetCoreVerifiableCredentials
                         .Filter($"givenName eq '{firstName}' and surname eq '{lastName}'")
                         .GetAsync();
 
-                    var userObjectId = userFound[0].Id;
-                    var userUPN = userFound[0].UserPrincipalName;
-
-                    //Cherry on top, get the user's photo, any other information 
-
-
-
-                    //Step 2: Issue the TAP
-                    //TODO: code below will fail if the user already has a TAP. Handle that case
-
-                    var temporaryAccessPassAuthenticationMethod = new TemporaryAccessPassAuthenticationMethod();
-                    var tapResult = await mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods
-                        .Request()
-                        .AddAsync(temporaryAccessPassAuthenticationMethod);
-
-                    var tapValue = tapResult.TemporaryAccessPass;
-
-                    var cacheData = new
+                    if (userFound != null && userFound.Count != 0)
                     {
-                        status = "presentation_verified",
-                        message = $"Welcome aboard, {firstName}.",
-                        userFirstName = firstName,
-                        userLastName = lastName,
-                        userUPN = userUPN,
-                        userObjectId = userObjectId,
-                        tap = tapValue,
-                        payload = $"userUPN={userUPN}, objectId={userObjectId}, tap={tapValue}"
-                        //userFoundPayloadDeleteMe = JsonConvert.SerializeObject(userFound)
-                    };
-                    _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                        var userObjectId = userFound[0].Id;
+                        var userUPN = userFound[0].UserPrincipalName;
 
+                        //Cherry on top, get the user's photo, any other information 
+
+
+
+                        //Step 2: Issue the TAP
+                        //TODO: code below will fail if the user already has a TAP. Handle that case
+
+                        var temporaryAccessPassAuthenticationMethod = new TemporaryAccessPassAuthenticationMethod();
+                        var tapResult = await mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods
+                            .Request()
+                            .AddAsync(temporaryAccessPassAuthenticationMethod);
+
+                        var tapValue = tapResult.TemporaryAccessPass;
+
+                        var cacheData = new
+                        {
+                            status = "presentation_verified",
+                            message = $"Welcome aboard, {firstName}.",
+                            userFirstName = firstName,
+                            userLastName = lastName,
+                            userUPN = userUPN,
+                            userObjectId = userObjectId,
+                            tap = tapValue,
+                            payload = $"userUPN={userUPN}, objectId={userObjectId}, tap={tapValue}"
+                            //userFoundPayloadDeleteMe = JsonConvert.SerializeObject(userFound)
+                        };
+
+                        _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                    } 
+                    else
+                    {
+                        var cacheData = new
+                        {
+                            status = "presentation_not_verified",
+                            message = $"User not found, FirstName({firstName}), LastName({lastName}) .",
+                        };
+
+                        _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                    }
 
                 }
 

@@ -1,10 +1,12 @@
 ﻿@page
 @model AspNetCoreVerifiableCredentials.Pages.VerifierModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Verifier";    
 }
         <div style="text-align: center;">
-                <img src="rcdemos-banner.png"/>
+             <img src=@Configuration.GetSection("AppSettings")["BrandImage"] />
                 <h1>Employee Onboarding</h1>
             <div id="message-wrapper" class="margin-bottom-75 margin-top-75" style="display: none">
                <i class="fas fa-user-check green icon-text-large margin-bottom-25"></i>
@@ -73,8 +75,8 @@
                 }
 
                 getVC.addEventListener('click', () => {
-                        window.location =
-                            'https://trueidentityinc.azurewebsites.net/?firstName=Ramiro&lastName=Calderon%20Romero&returnUrl=https%3A%2F%2Frcdemosonboard.azurewebsites.net%2Fverifier';
+                        window.location = '@Configuration.GetSection("AppSettings")["IdvUrlWithReturnUrl"]';
+                                                
                         signIn.addEventListener('click', () => 
                         {
                                 startVerification();
@@ -157,6 +159,11 @@
                                         checkUserCredentialStatusWorker, 
                                         3000, 
                                         requestId);
+                                }
+
+                                if (respMsg.status == 'presentation_not_verified') {
+                                    document.getElementById('message').innerHTML = respMsg.message;
+                                    clearInterval(checkVCPresentationInterval);
                                 }
                             }
                         })
