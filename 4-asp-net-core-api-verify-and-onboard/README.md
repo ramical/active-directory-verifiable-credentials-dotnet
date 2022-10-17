@@ -61,6 +61,11 @@ Register an application in Azure Active Directory:
     - Select Add permissions.
 8.  Click Grant admin consent for {tenant name} on top of the API/Permission list and click YES. This allows the application to get the correct permissions
 ![Admin concent](ReadmeFiles/AdminConcent.PNG)
+9.  Enabling the Temporary Access Pass (TAP) 
+    - Sign in to the Azure portal as a Global admin and select Azure Active Directory > Security > Authentication methods > Temporary Access Pass
+    - Select Yes to enable the policy and add Alex Wilber and select which users have the policy applied, and any General settings.
+    Note: If you do not have a new employee Alex Wilber that needs to be onboarded, replace Alex Wilber with another employee. In real world, new employees may be provisioned
+    into Azure AD via HR ISVs. More details [here] (https://learn.microsoft.com/en-us/azure/active-directory/app-provisioning/what-is-hr-driven-provisioning)
 
 ## Setting up and running the sample
 To run the sample, clone the repository, compile & run it. It's callback endpoint must be publically reachable, and for that reason, use `ngrok` as a reverse proxy to reach your app.
