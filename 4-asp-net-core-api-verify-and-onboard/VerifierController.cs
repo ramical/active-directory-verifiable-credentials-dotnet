@@ -84,6 +84,8 @@ namespace AspNetCoreVerifiableCredentials
                     payload["authority"] = AppSettings.VerifierAuthority;
                 }
 
+                // TBD - This needs to be removed and README updated so developer does not need to update appsettings.json 
+                // considering the payload already has the accepted issuers. 
                 //copy the issuerDID from the settings and fill in the trustedIssuer part of the payload
                 //this means only that issuer should be trusted for the requested credentialtype
                 //this value is an array in the payload, you can trust multiple issuers for the same credentialtype
@@ -235,6 +237,8 @@ namespace AspNetCoreVerifiableCredentials
 
                         //Step 2: Issue the TAP
                         //TODO: code below will fail if the user already has a TAP. Handle that case
+                        //TODO: code below will fail if the user doesnt have TAP as an allowed Auth Method.Need to handle that case.
+                        //NOTE: Right now above is listed as a setup requirement in the README file. 
 
                         var temporaryAccessPassAuthenticationMethod = new TemporaryAccessPassAuthenticationMethod();
                         var tapResult = await mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods
