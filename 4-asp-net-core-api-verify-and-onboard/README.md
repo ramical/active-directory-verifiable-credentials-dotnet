@@ -64,8 +64,10 @@ Register an application in Azure Active Directory:
 9.  Enabling the Temporary Access Pass (TAP) 
     - Sign in to the Azure portal as a Global admin and select Azure Active Directory > Security > Authentication methods > Temporary Access Pass
     - Select Yes to enable the policy and add Alex Wilber and select which users have the policy applied, and any General settings.
-    Note: If you do not have a new employee Alex Wilber that needs to be onboarded, replace Alex Wilber with another employee. In real world, new employees may be provisioned
+    Note: If you do not have an employee Alex Wilber that needs to be onboarded, replace Alex Wilber with another employee. In real world, new employees may be provisioned
     into Azure AD via HR ISVs. More details [here](https://learn.microsoft.com/en-us/azure/active-directory/app-provisioning/what-is-hr-driven-provisioning)
+    Note: To ensure that new or existing employees going through this onboarding flow cannot directly access https://aka.ms/mfasetup confirm TAP is ONLY auth method 
+    allowed for the employee.
 
 ## Setting up and running the sample
 To run the sample, clone the repository, compile & run it. It's callback endpoint must be publically reachable, and for that reason, use `ngrok` as a reverse proxy to reach your app.
