@@ -10,8 +10,9 @@ urlFragment: "4-asp-net-core-api-verify-and-onboard"
 ---
 # Verified ID Code Sample
 
-This dotnet code sample is for a developer who wants to verify identity of a new user using Microsoft Entra Verified ID from an ISV partner. 
-Upon successful verification the user will be provided a Temporary access passcode to onboard to Azure Active Directory and configure authentication methods for subsequent logins. 
+This dotnet code sample is for a developer who wants to verify identity of a employee using Microsoft Entra Verified ID from an ISV partner. 
+Upon successful verification the employee will be provided a Temporary access passcode to onboard to Azure Active Directory and configure 
+authentication methods for subsequent logins. 
 
 ## About this sample
 
@@ -66,8 +67,9 @@ Register an application in Azure Active Directory:
     - Select Yes to enable the policy and add Alex Wilber and select which users have the policy applied, and any General settings.
     Note: If you do not have an employee Alex Wilber that needs to be onboarded, replace Alex Wilber with another employee. In real world, new employees may be provisioned
     into Azure AD via HR ISVs. More details [here](https://learn.microsoft.com/en-us/azure/active-directory/app-provisioning/what-is-hr-driven-provisioning)
-    Note: To ensure that new or existing employees going through this onboarding flow cannot directly access https://aka.ms/mfasetup confirm TAP is ONLY auth method 
-    allowed for the employee.
+    Note:TBD: To ensure existing employees going through this onboarding flow cannot access https://aka.ms/mfasetup without providing TAP, TAP may need to be
+    generated so existing users are prompted for it and they will need to go through this flow to get the TAP. The code needs an update to be able to handle the 
+    scenario where user may have an active TAP already. 
 
 ## Setting up and running the sample
 To run the sample, clone the repository, compile & run it. It's callback endpoint must be publically reachable, and for that reason, use `ngrok` as a reverse proxy to reach your app.
