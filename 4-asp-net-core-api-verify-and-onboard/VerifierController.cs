@@ -233,34 +233,46 @@ namespace AspNetCoreVerifiableCredentials
 
                         //Cherry on top, get the user's photo, any other information 
 
-
-
-                        //Step 2: Issue the TAP
-                        //TODO: code below will fail if the user already has a TAP. Handle that case
                         //TODO: code below will fail if the user doesnt have TAP as an allowed Auth Method.Need to handle that case.
                         //NOTE: Right now above is listed as a setup requirement in the README file. 
 
-                        var temporaryAccessPassAuthenticationMethod = new TemporaryAccessPassAuthenticationMethod();
-                        var tapResult = await mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods
-                            .Request()
-                            .AddAsync(temporaryAccessPassAuthenticationMethod);
+                        var existingTap =  mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods.Request().GetAsync();
 
-                        var tapValue = tapResult.TemporaryAccessPass;
-
-                        var cacheData = new
+                        if (existingTap != null && existingTap.Result != null && existingTap.Result.Count == 0)
                         {
-                            status = "presentation_verified",
-                            message = $"Welcome aboard, {firstName}.",
-                            userFirstName = firstName,
-                            userLastName = lastName,
-                            userUPN = userUPN,
-                            userObjectId = userObjectId,
-                            tap = tapValue,
-                            payload = $"userUPN={userUPN}, objectId={userObjectId}, tap={tapValue}"
-                            //userFoundPayloadDeleteMe = JsonConvert.SerializeObject(userFound)
-                        };
+                            //Step 2: Issue the TAP
+                            var temporaryAccessPassAuthenticationMethod = new TemporaryAccessPassAuthenticationMethod();
+                            var tapResult = await mgClient.Users[userObjectId].Authentication.TemporaryAccessPassMethods
+                                .Request()
+                                .AddAsync(temporaryAccessPassAuthenticationMethod);
 
-                        _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                            var tapValue = tapResult.TemporaryAccessPass;
+
+                            var cacheData = new
+                            {
+                                status = "presentation_verified",
+                                message = $"Welcome aboard, {firstName}.",
+                                userFirstName = firstName,
+                                userLastName = lastName,
+                                userUPN = userUPN,
+                                userObjectId = userObjectId,
+                                tap = tapValue,
+                                payload = $"userUPN={userUPN}, objectId={userObjectId}, tap={tapValue}"
+                                //userFoundPayloadDeleteMe = JsonConvert.SerializeObject(userFound)
+                            };
+
+                            _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                        } 
+                        else
+                        {
+                            var cacheData = new
+                            {
+                                status = "presentation_not_verified",
+                                message = $"There is an existing TAP already issued for FirstName({firstName}), LastName({lastName}) .",
+                            };
+
+                            _cache.Set(state, JsonConvert.SerializeObject(cacheData));
+                        }
                     } 
                     else
                     {
